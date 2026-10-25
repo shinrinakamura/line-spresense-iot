@@ -43,6 +43,12 @@ module.exports = {
     // フローの認証情報を暗号化するための秘密鍵
     credentialSecret: process.env.NODE_RED_CREDENTIAL_SECRET,
 
+    // LINE Webhookの署名検証に使用する暗号処理
+    // Functionノードからglobal.get("crypto")で参照する
+    functionGlobalContext: {
+        crypto: require("node:crypto")
+    },
+
     // 編集画面と管理APIのログイン認証
     adminAuth: {
         type: "credentials",

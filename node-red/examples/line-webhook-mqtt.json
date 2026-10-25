@@ -1,0 +1,257 @@
+[
+    {
+        "id": "a4c20b9dbdb52f75",
+        "type": "http in",
+        "z": "dff37df7c556e536",
+        "name": "LINE Webhook受信",
+        "url": "/line/webhook",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": true,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "9f8878d107fd8ab7"
+            ]
+        ]
+    },
+    {
+        "id": "9f5bb858e5bb74a4",
+        "type": "http response",
+        "z": "dff37df7c556e536",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 630,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "fafd0996d30d4140",
+        "type": "debug",
+        "z": "dff37df7c556e536",
+        "name": "debug 3",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "lineWebhook",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "9f8878d107fd8ab7",
+        "type": "function",
+        "z": "dff37df7c556e536",
+        "name": "LINE署名検証",
+        "func": "\nconst crypto = global.get(\"crypto\");\nconst secret = env.get(\"LINE_CHANNEL_SECRET\");\nconst signature = msg.req.headers[\"x-line-signature\"];\n\n// エラー時は後続処理を行わずHTTP応答だけ返す\nfunction reject(statusCode, message) {\n    msg.statusCode = statusCode;\n    msg.payload = message;\n    return [null, msg];\n}\n\n// 設定と受信データの確認\nif (!secret || !crypto) {\n    node.error(\"署名検証の設定が不足しています\");\n    return reject(500, \"Server configuration error\");\n}\n\nif (!Buffer.isBuffer(msg.payload)) {\n    return reject(400, \"Invalid request body\");\n}\n\n// 署名がない場合は拒否\nif (typeof signature !== \"string\" ||\n    !/^[A-Za-z0-9+/]{43}=$/.test(signature)) {\n    return reject(401, \"Unauthorized\");\n}\n\n// 受信した本文を変更せずに署名を計算\nconst calculated = crypto\n    .createHmac(\"sha256\", secret)\n    .update(msg.payload)\n    .digest();\n\nconst received = Buffer.from(signature, \"base64\");\n\n// タイミング攻撃に配慮して比較\nif (received.length !== calculated.length ||\n    !crypto.timingSafeEqual(received, calculated)) {\n    return reject(401, \"Unauthorized\");\n}\n\n// 署名検証が成功してからJSONを解析\ntry {\n    msg.lineWebhook = JSON.parse(msg.payload.toString(\"utf8\"));\n} catch (err) {\n    return reject(400, \"Invalid JSON\");\n}\n\nmsg.statusCode = 200;\nmsg.payload = \"OK\";\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 300,
+        "wires": [
+            [
+                "fafd0996d30d4140",
+                "9f5bb858e5bb74a4",
+                "c1c2586a429f70ae"
+            ],
+            [
+                "9f5bb858e5bb74a4"
+            ]
+        ]
+    },
+    {
+        "id": "c1c2586a429f70ae",
+        "type": "function",
+        "z": "dff37df7c556e536",
+        "name": "写真コマンド判定",
+        "func": "\nconst allowedUserId = env.get(\"LINE_ALLOWED_USER_ID\");\nconst events = msg.lineWebhook?.events;\n\n// 許可ユーザーが未設定なら処理しない\nif (!allowedUserId) {\n    node.error(\"LINE_ALLOWED_USER_IDが未設定です\");\n    return null;\n}\n\nif (!Array.isArray(events)) {\n    return null;\n}\n\nfor (const event of events) {\n    // 許可したユーザーからの1対1のメッセージのみ受け付ける\n    if (\n        event.source?.type !== \"user\" ||\n        event.source?.userId !== allowedUserId\n    ) {\n        continue;\n    }\n\n    // 「写真」の場合だけ撮影指示を生成\n    if (\n        event.type === \"message\" &&\n        event.message?.type === \"text\" &&\n        event.message.text === \"写真\"\n    ) {\n        const requestToken =\n            event.webhookEventId || event.message.id;\n\n        if (!requestToken) continue;\n\n        node.send({\n            payload: {\n                command: \"capture\",\n                requestToken\n            }\n        });\n    }\n}\n\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 280,
+        "wires": [
+            [
+                "f2a96da0212e79d5"
+            ]
+        ]
+    },
+    {
+        "id": "f892f997535c6cb7",
+        "type": "debug",
+        "z": "dff37df7c556e536",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1120,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "f2a96da0212e79d5",
+        "type": "function",
+        "z": "dff37df7c556e536",
+        "name": "重複イベント判定",
+        "func": "\nconst id = msg.payload?.requestToken;\n\nif (typeof id !== \"string\" || !id) {\n    return null;\n}\n\nconst now = Date.now();\nconst ttl = 24 * 60 * 60 * 1000; // 24時間\n\n// 過去に処理したイベントIDを取得\nconst seen = context.get(\"seenEventIds\") || {};\n\n// 古い履歴を削除\nfor (const key of Object.keys(seen)) {\n    if (now - seen[key] >= ttl) {\n        delete seen[key];\n    }\n}\n\n// 処理済みなら撮影指示を破棄\nif (Object.prototype.hasOwnProperty.call(seen, id)) {\n    return null;\n}\n\n// 初回のイベントIDを記録\nseen[id] = now;\ncontext.set(\"seenEventIds\", seen);\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 280,
+        "wires": [
+            [
+                "f892f997535c6cb7",
+                "ff1d4d1230ec26ec"
+            ]
+        ]
+    },
+    {
+        "id": "ff1d4d1230ec26ec",
+        "type": "mqtt out",
+        "z": "dff37df7c556e536",
+        "name": "撮影指示送信",
+        "topic": "test/line",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "f1a56ffb92f9f5e2",
+        "x": 1140,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "0995d30984beae21",
+        "type": "mqtt in",
+        "z": "dff37df7c556e536",
+        "name": "",
+        "topic": "test/line",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f1a56ffb92f9f5e2",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 440,
+        "wires": [
+            [
+                "30b9fb97e9242ef9"
+            ]
+        ]
+    },
+    {
+        "id": "30b9fb97e9242ef9",
+        "type": "debug",
+        "z": "dff37df7c556e536",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "cccd62b828e0680b",
+        "type": "comment",
+        "z": "dff37df7c556e536",
+        "name": "MQTTの受信確認",
+        "info": "",
+        "x": 160,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "ae7cb5943346cf29",
+        "type": "comment",
+        "z": "dff37df7c556e536",
+        "name": "LINE受信",
+        "info": "",
+        "x": 140,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "f1a56ffb92f9f5e2",
+        "type": "mqtt-broker",
+        "name": "cloudAMQP",
+        "broker": "your-cloudamqp-host.example",
+        "port": "8883",
+        "tls": "7971d369dc86aa90",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7971d369dc86aa90",
+        "type": "tls-config",
+        "name": "CloudAMQP TLS",
+        "certType": "files",
+        "cert": "",
+        "key": "",
+        "p12": "",
+        "p12name": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": "",
+        "certEnv": "",
+        "keyEnv": "",
+        "caEnv": ""
+    }
+]
