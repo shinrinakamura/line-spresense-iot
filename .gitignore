@@ -35,3 +35,9 @@ node-red/.config.*
 
 # Node-REDのセッション情報を除外する
 node-red/.sessions.json
+
+# Node-REDが自動生成するバックアップファイル
+node-red/*.backup
+
+# 開発環境固有のNode-REDフロー
+node-red/flows.json

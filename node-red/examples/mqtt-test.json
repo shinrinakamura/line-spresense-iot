@@ -1,0 +1,155 @@
+[
+    {
+        "id": "d14cb20e7d6cdeed",
+        "type": "inject",
+        "z": "405c4e4c8b9f277f",
+        "name": "撮影指示テスト",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{   \"command\": \"capture\",   \"requestToken\": \"test-001\" }",
+        "payloadType": "json",
+        "x": 260,
+        "y": 300,
+        "wires": [
+            [
+                "519a3046d7f88b4d",
+                "554bc90d102c60db"
+            ]
+        ]
+    },
+    {
+        "id": "519a3046d7f88b4d",
+        "type": "debug",
+        "z": "405c4e4c8b9f277f",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "554bc90d102c60db",
+        "type": "mqtt out",
+        "z": "405c4e4c8b9f277f",
+        "name": "撮影指示送信",
+        "topic": "test/line",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "f1a56ffb92f9f5e2",
+        "x": 500,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "ac83d2797ea2f592",
+        "type": "mqtt in",
+        "z": "405c4e4c8b9f277f",
+        "name": "",
+        "topic": "test/line",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f1a56ffb92f9f5e2",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 460,
+        "wires": [
+            [
+                "66671661d15c0514"
+            ]
+        ]
+    },
+    {
+        "id": "66671661d15c0514",
+        "type": "debug",
+        "z": "405c4e4c8b9f277f",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "f1a56ffb92f9f5e2",
+        "type": "mqtt-broker",
+        "name": "cloudAMQP",
+        "broker": "your-cloudamqp-host.example",
+        "port": "8883",
+        "tls": "7971d369dc86aa90",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7971d369dc86aa90",
+        "type": "tls-config",
+        "name": "CloudAMQP TLS",
+        "certType": "files",
+        "cert": "",
+        "key": "",
+        "p12": "",
+        "p12name": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": "",
+        "certEnv": "",
+        "keyEnv": "",
+        "caEnv": ""
+    }
+]
