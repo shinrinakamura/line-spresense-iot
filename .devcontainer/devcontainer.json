@@ -1,0 +1,10 @@
+
+{
+  "name": "LINE Spresense IoT",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "24.22.1"
+    }
+  }
+}
