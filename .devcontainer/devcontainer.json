@@ -6,5 +6,6 @@
     "ghcr.io/devcontainers/features/node:2": {
       "version": "24.22.1"
     }
-  }
+  },
+  "postCreateCommand": "npm ci --prefix node-red"
 }
