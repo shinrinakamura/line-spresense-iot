@@ -35,7 +35,7 @@ https://developer.sony.com/spresense/
 |---|---|
 | `Serial_countup_simple` | シリアルモニタで1秒ごとにカウントを表示 |
 | `Single_LED_Blynk` | Spresense基板上のLEDを点滅 |
-| `Spresense_Camera_OperationCheck` | カメラの初期化と動作を確認 |
+| `Spresense_Camera_OperationCheck` | カメラの初期化と設定を確認 |
 | `Spresense_MQTT_TLS_Pub` | LTE経由でMQTT/TLSメッセージを送信 |
 | `Spresense_MQTT_TLS_Sub` | MQTT/TLSメッセージを受信してシリアルに表示 |
 | `Spresense_HTTPS_Upload_Test` | カメラ画像をHTTPSでアップロード |
@@ -128,7 +128,7 @@ CA証明書は接続先サーバーの証明書チェーンに対応したもの
 
 ### Step 2：カメラ
 
-`Spresense_Camera_OperationCheck` を実行し、カメラの初期化と撮影処理を確認します。
+`Spresense_Camera_OperationCheck` を実行し、カメラの初期化と設定を確認します。
 
 撮影した画像のSDカードへの保存は、このサンプルでは無効化されています。
 
