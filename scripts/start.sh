@@ -24,6 +24,18 @@ if [[ ! -f node-red/node_modules/node-red/red.js ]]; then
   exit 1
 fi
 
+# ========================================
+# JPEG画像の保存先ディレクトリを準備
+# ========================================
+
+# Codespaces上でJPEGを保存するディレクトリ
+# 既に存在する場合はそのまま使用する
+mkdir -p /tmp/spresense-node-red-uploads
+
+# ========================================
+# Node-REDを起動
+# ========================================
+
 # 環境変数を読み込んでNode-REDを起動する
 exec node --env-file=.env \
   node-red/node_modules/node-red/red.js \

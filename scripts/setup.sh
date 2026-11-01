@@ -89,15 +89,58 @@ tmp_file="$(mktemp .env.tmp.XXXXXX)"
 trap 'rm -f -- "$tmp_file"' EXIT
 
 cat > "$tmp_file" <<EOF
-# Node-RED authentication settings
+# ========================================
+# Node-RED 管理者認証
+# ========================================
 # Do not commit this file to Git.
 
 NODE_RED_ADMIN_USER=$admin_user
 NODE_RED_ADMIN_PASSWORD_HASH=$password_hash
 NODE_RED_CREDENTIAL_SECRET=$credential_secret
+
+# ========================================
+# LINE Messaging API
+# ========================================
+
+# LINEチャネルシークレット
+LINE_CHANNEL_SECRET=
+
+# 許可するLINEユーザーID
+LINE_ALLOWED_USER_ID=
+
+# LINEチャネルアクセストークン
+LINE_CHANNEL_ACCESS_TOKEN=
+
+# ========================================
+# JPEGアップロード認証
+# ========================================
+
+# Spresenseと共通の認証キー
+UPLOAD_API_KEY=
+
+# ========================================
+# JPEG画像の配信用HTTPS URL
+# ========================================
+
+# Codespacesの8081番ポートの公開URL
+LINE_IMAGE_BASE_URL=
 EOF
 
 mv -- "$tmp_file" .env
 trap - EXIT
 
-echo "初期設定が完了しました。.env を作成しました。"
+# ========================================
+# 初期設定完了後の案内
+# ========================================
+
+echo "初期設定が完了しました。"
+echo ".env ファイルを作成しました。"
+echo ""
+echo "次に .env を開き、以下の項目を設定してください。"
+echo "  - LINE_CHANNEL_SECRET"
+echo "  - LINE_ALLOWED_USER_ID"
+echo "  - LINE_CHANNEL_ACCESS_TOKEN"
+echo "  - UPLOAD_API_KEY"
+echo "  - LINE_IMAGE_BASE_URL"
+echo ""
+echo "設定後、bash scripts/start.sh でNode-REDを起動してください。"
