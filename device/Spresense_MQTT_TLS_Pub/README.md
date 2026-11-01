@@ -4,7 +4,7 @@ LTE経由でMQTTブローカーへTLS接続し、テスト文字列を1秒間隔
 
 ## ライセンスと適用範囲
 
-このフォルダーの `Spresense_Auth_TLS_pub.ino` および `config.h` の設定コードは、GNU General Public License version 2 only（`GPL-2.0-only`）で配布します。正式な許諾条件と免責事項は同梱の [LICENSE](LICENSE) を参照してください。ソースコードを再配布する際は、ライセンス本文および権利・ライセンス・変更に関する表示を保持してください。
+このフォルダーの `Spresense_MQTT_TLS_Pub.ino` および `config.h` の設定コードは、GNU General Public License version 2 only（`GPL-2.0-only`）で配布します。正式な許諾条件と免責事項は同梱の [LICENSE](LICENSE) を参照してください。ソースコードを再配布する際は、ライセンス本文および権利・ライセンス・変更に関する表示を保持してください。
 
 この指定は、リポジトリ内の他の独立したプログラムや技術書本文に一括して適用するものではありません。依存するライブラリは各ライブラリのライセンスに従います。
 
