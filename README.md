@@ -55,7 +55,7 @@ bash scripts/setup.sh
 
 管理者ユーザー名と12文字以上のパスワードを設定すると、`.env`が作成されます。`.env`がすでに存在する場合、このスクリプトは上書きしません。
 
-続いて、`.env`にLINE連携などの設定を**追記**します。項目名は`.env.example`を参照してください。
+続いて、生成された `.env` を開き、LINE連携などの設定項目に自分の環境の値を入力します。項目名は `.env.example` も参照してください。
 
 ```dotenv
 LINE_CHANNEL_SECRET=
@@ -139,21 +139,31 @@ Codespacesの公開URLは環境により変わります。変更した場合はL
 
 ## 6. Spresense側の設定
 
-Spresenseのファームウェアは、現時点ではこのリポジトリに含まれていません。別途、以下の設定が必要です。
+Spresense用のArduinoサンプルは [device/](device/) に収録しています。シリアル通信・LED・カメラの基本動作、MQTT/TLSの送受信、JPEGのHTTPSアップロードを個別に確認した後、統合プログラムで一連の動作を試せます。
 
-- LTEの通信設定
-- CloudAMQPへのMQTT/TLS接続（Node-REDと同じブローカー、`test/line`トピック）
-- カメラによるJPEG撮影
-- `https://<codespace-name>-8081.app.github.dev/api/upload`へのHTTPS POST
-- HTTPヘッダー：`Content-Type: image/jpeg`、`x-device-key`、`x-requesttoken`
-- HTTPS接続先のサーバー証明書の検証
+**サンプル一覧、必要機材、書き込み手順、設定項目は [device/README.md](device/README.md) を参照してください。**
 
-撮影後のMQTT再接続には時間がかかる場合があります。再接続処理の最適化は今後の課題です。
+LINE連携まで確認する場合は、次のスケッチを使用します。
+
+```text
+device/Spresense_MQTT_HTTPS_Camera/Spresense_MQTT_HTTPS_Camera.ino
+```
+
+書き込み前に、自分の環境に合わせて次の値を設定してください。
+
+- スケッチ（`.ino`）内：使用するSIMのAPN・認証情報・必要に応じた通信設定
+- `config.h`：CloudAMQPのホスト名・認証情報・MQTTトピック（Node-REDと同じ `test/line`）
+- `https_config.h`：8081番ポートに対応する公開ホスト名・アップロード先 `/api/upload`・共有キー（`.env` の `UPLOAD_API_KEY` と一致）
+- `config.h` と `https_ca.h`：各接続先の証明書チェーンに対応するCA証明書
+
+統合プログラムは、MQTTで受け取った `capture` 指示と `requestToken` に基づきJPEGを撮影し、HTTPSでアップロードします。アップロード時はMQTTを一度切断し、その後再接続します。通信状況によって再接続に時間がかかる場合があります。
+
+実際の認証情報を設定したファイルはGitHubにコミットしないでください。
 
 ## 7. 動作確認
 
 1. Node-RED、8080番プロキシ、8081番プロキシが起動していることを確認します。
-2. Node-REDのMQTT接続状態を確認します。
+2. Node-REDのMQTT接続状態を確認し、Spresenseに上記の統合スケッチを書き込んでシリアルモニタ（115200bps）でMQTT購読を確認します。
 3. 許可したLINEユーザーから「写真」と送信します。
 4. Spresenseが撮影・HTTPSアップロードを行うことを確認します。
 5. Node-REDでJPEG保存が成功し、アップロードにHTTP `201`が返ることを確認します。
@@ -175,12 +185,12 @@ Spresenseのファームウェアは、現時点ではこのリポジトリに�
 - 8080番と8081番はPublicですが、Node-RED編集画面の1880番はPrivateを維持してください。
 - シークレットやCloudAMQPの認証情報をGitHubにコミットしないでください。
 - Node-REDの実行中フロー`node-red/flows.json`はGit管理対象外です。共有用として`node-red/examples/line-spresense-e2e.json`を保存しています。**フロー更新時は共有用JSONも更新してください。**
-- 既存READMEでは依存パッケージに未解決の脆弱性があることを注意喚起しています。外部公開・本番利用に進む前に`npm audit --prefix node-red`などで依存関係を再確認し、対応を判断してください。
+- 外部公開・本番利用に進む前に、`npm audit --prefix node-red` などで依存関係の脆弱性を確認し、対応を判断してください。
 - SpresenseのMQTT再接続速度、プロセスの自動起動、公開URLの固定化などは未対応です。
 
 ## 今後追加・改善する内容
 
-- Spresenseの統合Arduinoスケッチ（秘密情報を含まない形で登録）
+- デバイス側設定ファイルのテンプレート化と、認証情報の誤コミット防止
 - MQTT再接続時間の短縮と通信の安定性確認
 - プロセス自動起動とCodespaces停止・再開時の復旧手順
 - JPEG画像の保存期限と削除処理
@@ -191,6 +201,8 @@ Spresenseのファームウェアは、現時点ではこのリポジトリに�
 | ファイル | 内容 |
 | --- | --- |
 | `.env.example` | 必要な環境変数の見本 |
+| `device/README.md` | Spresense側サンプルの一覧・設定・使用方法 |
+| `device/Spresense_MQTT_HTTPS_Camera/` | MQTT撮影指示の受信からJPEGアップロードまでの統合スケッチ |
 | `scripts/setup.sh` | Node-RED初期設定、`.env`の作成 |
 | `scripts/start.sh` | Node-RED起動 |
 | `scripts/webhook-proxy.js` | LINE Webhookの中継（8080番） |
