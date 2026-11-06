@@ -1,5 +1,5 @@
 // Spresenseのカメラヲチェックするためのシンプルなプログラム
-// 電源が入るとカメラを初期化して1回撮影します
+// カメラの初期化と設定を確認します（静止画は撮影しません）
 // SPRESENSEのカメラのサンプルコードをベースにしています
 // SDカードを挿入しなくても動作します
 // 日本語のコメントは中村による
@@ -33,7 +33,7 @@
 #include <Camera.h>                       // カメラのライブラリ
 
 #define BAUDRATE                (115200)  // シリアルの通信スピード
-#define TOTAL_PICTURE_COUNT     (0)       // 写真を撮影する回数(ゼロオリジン)
+#define TOTAL_PICTURE_COUNT     (0)       // 0なら静止画を撮影しない
 
 // SDClass  theSD;                        // SDカードを使用するときはコメントアウトを外してください
 int take_picture_count = 0;               // カメラの撮影回数を確認する
@@ -79,6 +79,24 @@ void printError(enum CamErr err){
         break;
       default:
         break;
+    }
+}
+
+/**
+ * Report setup failure and stop before printing success.
+ */
+void stopOnCameraError(enum CamErr err)
+{
+  if (err == CAM_ERR_SUCCESS)
+    {
+      return;
+    }
+
+  printError(err);
+  Serial.println("Camera check failed.");
+  while (true)
+    {
+      sleep(1);
     }
 }
 
@@ -139,12 +157,8 @@ void setup()
   Serial.println("Prepare camera");
   // カメラをスタートします。スタートできないときはエラー内容を表示します
   err = theCamera.begin();
-  if (err != CAM_ERR_SUCCESS)
-    {
-      printError(err);
-    }else{
-      Serial.println("[OK] Camera initialized");
-    }
+  stopOnCameraError(err);
+  Serial.println("[OK] Camera initialized");
 
   /* Start video stream.
    * If received video stream data from camera device,
@@ -153,19 +167,13 @@ void setup()
 
   Serial.println("Start streaming");
   err = theCamera.startStreaming(true, CamCB);
-  if (err != CAM_ERR_SUCCESS)
-    {
-      printError(err);
-    }
+  stopOnCameraError(err);
 
   /* Auto white balance configuration */
 
   Serial.println("Set Auto white balance parameter");
   err = theCamera.setAutoWhiteBalanceMode(CAM_WHITE_BALANCE_DAYLIGHT);
-  if (err != CAM_ERR_SUCCESS)
-    {
-      printError(err);
-    }
+  stopOnCameraError(err);
  
   /* Set parameters about still picture.
    * In the following case, QUADVGA and JPEG.
@@ -176,14 +184,11 @@ void setup()
      CAM_IMGSIZE_QUADVGA_H,
      CAM_IMGSIZE_QUADVGA_V,
      CAM_IMAGE_PIX_FMT_JPG);
-  if (err != CAM_ERR_SUCCESS)
-    {
-      printError(err);
-    }
+  stopOnCameraError(err);
 }
 
 /**
- * @brief Take picture with format JPEG per second
+ * @brief Complete camera setup test (still image capture disabled)
  */
 
 void loop()
