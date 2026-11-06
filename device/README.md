@@ -20,14 +20,31 @@
 
 ### ソフトウェア
 
-- Arduino IDE
-- Spresense Arduinoボードパッケージ
-- ArduinoMqttClientライブラリ（MQTTを使用するサンプル）
+動作確認には以下の環境を使用しました。
+
+- Arduino IDE 2.2.1
+- Spresense Arduinoボードパッケージ 3.4.5
+- ArduinoMqttClient 0.1.8（MQTTを使用するサンプル）
 - Arduino IDEのシリアルモニタ
 
-Spresenseの開発環境については、Sony公式ドキュメントも参照してください。
+本サンプルは上記のバージョンで動作を確認しています。異なるバージョンでの動作は保証していません。
 
-https://developer.sony.com/spresense/
+### Spresenseボードパッケージのインストール
+
+Arduino IDEの「ファイル」→「基本設定」を開き、「追加のボードマネージャのURL」に以下を登録します。
+
+```text
+https://github.com/sonydevworld/spresense-arduino-compatible/releases/download/generic/package_spresense_index.json
+```
+
+続いて「ツール」→「ボード」→「ボードマネージャ」で `Spresense` を検索し、ボードパッケージをインストールします。本サンプルの動作確認にはバージョン3.4.5を使用しました。
+
+ボードの選択、USBポートの設定、書き込み方法などは以下を参照してください。
+
+- [Spresense Arduinoセットアップガイド（Sony公式）](https://developer.spresense.sony-semicon.com/development-guides/?page=arduino_set_up&lang=ja)
+- [SPRESENSEハンズオン デバイス側 実行ガイド（著者作成）](https://docs.google.com/document/d/1GMsZTOQBVn1UkmASXePlPtEtfreeCBu6e4U4GXCeIf8/edit?tab=t.0#heading=h.2kzubznjf79q)
+
+ハンズオン資料には、Arduino IDEの導入からボードの選択、USB接続、LED点滅による動作確認までの手順を掲載しています。ただし、本章とは異なる構成を使用しているため、LTE・MQTT/TLS・HTTPSの接続設定については、このREADMEの手順に従ってください。
 
 ## 2. サンプルプログラム一覧
 
@@ -66,6 +83,31 @@ LTE、MQTT、HTTPSを使用するサンプルでは、書き込み前に接続�
 #define APP_LTE_USER_NAME "USER-NAME"
 #define APP_LTE_PASSWORD  "PASS-WORD"
 ```
+
+以下はMEEQ SIMとSORACOM AirのAPN設定例です。
+
+**MEEQ SIMの場合**
+
+```cpp
+#define APP_LTE_APN       "meeq.io"
+#define APP_LTE_USER_NAME "meeq"
+#define APP_LTE_PASSWORD  "meeq"
+#define APP_LTE_AUTH_TYPE LTE_NET_AUTHTYPE_CHAP
+```
+
+**SORACOM Airの場合（一般的な `soracom.io` 対応プラン）**
+
+```cpp
+#define APP_LTE_APN       "soracom.io"
+#define APP_LTE_USER_NAME "sora"
+#define APP_LTE_PASSWORD  "sora"
+#define APP_LTE_AUTH_TYPE LTE_NET_AUTHTYPE_CHAP
+```
+
+これらは一般的な設定例です。SORACOMのplan-DUなど、契約プランによってAPNが異なる場合があります。また、SIMの設定に応じて認証情報が変更されている場合もあります。利用中のSIM・プランに対応する設定値を確認してください。
+
+- [MEEQ SIM インターネット接続（公式）](https://support.meeq.jp/hc/ja/articles/360003560336-MEEQ-SIM-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%BC%E3%83%8D%E3%83%83%E3%83%88%E6%8E%A5%E7%B6%9A)
+- [SORACOM Air APN設定（公式）](https://users.soracom.io/ja-jp/docs/air/apn-settings/)
 
 必要に応じて認証方式、IPタイプ、通信方式も変更してください。
 
@@ -181,4 +223,4 @@ MQTT/TLS送信・受信サンプルは、早川氏が公開したSpresense用サ
 
 - [プロジェクト全体のREADME](../README.md)
 - [Node-REDサンプル](../node-red/examples/)
-- [Spresense公式サイト](https://developer.sony.com/spresense/)
+- [Spresense公式サイト](https://developer.spresense.sony-semicon.com/)
